@@ -224,7 +224,6 @@ void printLsitReversingly_recursive(ListNode* pHead)
 
 //|-------- 7.重建二叉树 --------------|\\\\\\\\\
 
-
 BinaryTreeNode* constructCore(int* startPreorder, int* endPreorder, int* startInorder, int* endInorder)
 {
     int rootValue = startPreorder[0];
@@ -366,24 +365,38 @@ private:
 
 template <typename T> void CStack<T>::appendTail(const T &element)
 {
-    queue1.push(element);
+    if (queue1.size() > 0) {
+        queue1.push(element);
+    } else if (queue2.size() > 0) {
+        queue2.push(element);
+    }
 }
 
 template <typename T> T CStack<T>::delegeHead()
 {
+    T result = nullptr;
+    
     if (queue1.size() > 0) {
         while (!queue1.empty()) {
-            T head = queue1.top();
+            T head = queue1.front()();
             queue2.push(head);
             queue1.pop();
+            if (queue1.size() == 1) {
+                result = head;
+            }
         }
     }
-    if (queue2.size()>0) {
-        T head = queue2.top();
-        queue2.pop();
-        return head;
+    if (queue2.size() > 0) {
+        while (!queue2.empty()) {
+            T head = queue2.front()();
+            queue1.push(head);
+            queue2.pop();
+            if (queue2.size() == 1) {
+                result = head;
+            }
+        }
     }
-    return nullptr;
+    return result;
 }
 
 
@@ -1065,8 +1078,7 @@ ListNode* findEntranceNode(ListNode* pHead)
     } else {
         return nullptr;
     }
-    
-    while (p1 != nullptr && p1 != p2) {
+    while (p2 != nullptr && p1 != p2) {
         p1 = p1->m_pNext;
         
         p2 = p2->m_pNext;
@@ -1124,7 +1136,8 @@ ListNode* reverseList(ListNode* pHead)
     while (pNode != nullptr) {
         reverseListHead = pNode;
         reverseListHead->m_pNext = pPre;
-        
+
+        pPre = pNode;
         pNode = pNext;
         if (pNext != nullptr) {
             pNext = pNext->m_pNext;
@@ -1184,7 +1197,6 @@ bool doesTree1HaveTree2Core(BinaryTreeNode* tree1, BinaryTreeNode* tree2)
     if (tree1 == nullptr) {
         return false;
     }
-    
     if (tree1->m_value != tree2->m_value) {
         return false;
     }
@@ -1238,7 +1250,9 @@ bool isSymmetryTreeCore(BinaryTreeNode* pRoot1, BinaryTreeNode* pRoot2)
     if (pRoot1 == nullptr || pRoot2 == nullptr) {
         return false;
     }
-    
+    if (pRoot1->m_value != pRoot2->m_value) {
+        return false;
+    }
     return isSymmetryTreeCore(pRoot1->m_pLeft,pRoot2->m_pRight) && isSymmetryTreeCore(pRoot1->m_pRight,pRoot2->m_pLeft);
 }
 
@@ -1363,6 +1377,7 @@ bool isPopOrder(int* push, int* pop, int length)
     int* pushIndex = push;
     
     for (int i = 0; i < length; i++) {
+        // 被弹出的元素
         int temp = *(pop + i);
         
         while (stackPush.empty() || stackPush.top() != temp) {
@@ -1547,7 +1562,7 @@ bool isOutOrderList(int* array, int length)
             break;
         }
     }
-
+    
     for (int i = rightStartIndex; i < length-1; i++) {
         if (*(array+i) < root) {
             return false;
@@ -1745,57 +1760,34 @@ void deserialize(BinaryTreeNode** pRoot, istream& stream)
 
 ///////|-------- 38.字符串的排列 --------------|\\\\\\\\\
 
-void printAllPermutationCore(char* strings, int length, int start)
+void printAllPermutationCore(char* strings, char* begin)
 {
-    if (strings == nullptr || length == 0) {
-        return;
-    }
-    if (strings[start] == '\0') {
-        printf("%s\n",strings);
-        return;
-    }
-    
-    for (int i = start; i < length-1; i++) {
-        char temp = strings[start];
-        strings[start] = strings[i];
-        strings[i] = temp;
-        
-        printAllPermutationCore(strings, length, start+1);
-        
-        temp = strings[start];
-        strings[start] = strings[i];
-        strings[i] = temp;
+    if (*begin == '\0') {
+        printf("%s\n", strings);
+    } else {
+        for (char* pCh = begin; *pCh != '\0'; pCh++) {
+            char temp = *pCh;
+            *pCh = *begin;
+            *begin = temp;
+            
+            printAllPermutationCore(strings, begin + 1);
+            
+            temp = *pCh;
+            *pCh = *begin;
+            *begin = temp;
+        }
     }
 }
 
-void printAllPermutation(char* strings, int length)
+void printAllPermutation(char* strings)
 {
-    if (strings == nullptr || length <= 0) {
+    if (strings == nullptr) {
         return;
     }
-    printAllPermutationCore(strings, length, 0);
+    printAllPermutationCore(strings, strings);
 }
 
 // 拓展题1
-
-void printAllPermutationOneCore(char* strings, int length, int start, int newLength, char* newStr)
-{
-    if (newLength == 0) {
-        printf("%s\n",newStr);
-        return;
-    }
-    
-    //i代表组合长度
-    for (int j = start; j < length; j++) {
-        
-        newStr[start] = strings[j];
-        printAllPermutationOneCore(strings, length, start+1, newLength-1, newStr);
-        newStr[start] = ' ';
-        
-        printAllPermutationOneCore(strings, length, start+1, newLength, newStr);
-    }
-}
-
 
 void printAllPermutationOne(char* strings, int length)
 {
@@ -1803,12 +1795,23 @@ void printAllPermutationOne(char* strings, int length)
         return;
     }
     
-    char aa[length+1];
-    memset(aa, ' ', length);
-    aa[length] = '\0';
-    
-    for (int i = 0; i < length+1; i++) {
-        printAllPermutationOneCore(strings, length, 0, i, aa);
+    for (int i = 1; i <= length; i++) {
+        int numbers = 0;
+        int start = 0;
+        int index = 0;
+        
+        while (numbers < i) {
+            for (int j = start; j < length; j++) {
+                printf("%c", strings[j]);
+                for (int k = j; k < length; k++) {
+                    
+                }
+                
+            }
+            printf("\n");
+            numbers++;
+            start++;
+        }
     }
 }
 
@@ -1979,8 +1982,6 @@ void minestNumbers(int* array, int length, int k)
     }
     printf("\n");
 }
-
-//解法2
 
 
 ///////|-------- 41.数据流中的中位数 --------------|\\\\\\\\\

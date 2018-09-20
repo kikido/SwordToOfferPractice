@@ -100,7 +100,7 @@ ListNode* cloneComplexList(ListNode* pHead);
 
 BinaryTreeNode* convert(BinaryTreeNode* pRoot);
 
-void printAllPermutation(char* strings, int length);
+void printAllPermutation(char* strings);
 
 void printAllPermutationOne(char* strings, int length);
 

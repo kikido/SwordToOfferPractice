@@ -14,8 +14,8 @@
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-
-        
+        char aa[] = "abc";
+        printAllPermutationOne(aa, 3);
     }
     return 0;
 }
