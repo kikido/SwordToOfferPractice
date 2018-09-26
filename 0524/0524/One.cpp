@@ -1789,6 +1789,30 @@ void printAllPermutation(char* strings)
 
 // 拓展题1
 
+void testCore(char* strings, int length, int count, int result, int orginReuslt)
+{
+    if (count <= 0) {
+        return;
+    }
+    result++;
+    if (count == 1) {
+        for (int i = 0; i < length; i++) {
+            char c = strings[i];
+            if (c != '0') {
+                printf("%c",c);
+                
+                if (result == orginReuslt) {
+                    printf(",");
+                }
+            }
+        }
+    }
+    
+    testCore(strings, length, count-1, result, orginReuslt);
+    
+    
+}
+
 void printAllPermutationOne(char* strings, int length)
 {
     if (strings == nullptr || length <= 0) {
@@ -2089,7 +2113,7 @@ int numberOf1Between1AndNCore(char* str)
     }
     
     // 分成两部分。如果传进来的数字为89757，则分成1 ~ 9757和9758 ~ 89757两部分
-    //最高位有多少1
+    // 最高位有多少1
     int numberFirstDigit = 0;
     
     if (first > 1) {
@@ -2631,7 +2655,7 @@ ListNode* findFirstCommonNode(ListNode* pHead1, ListNode* pHead2)
         lengthDif = nLength2 - nLength1;
     }
 
-    //长的链表先走几步
+    // 长的链表先走几步
     for (int i = 0; i < lengthDif; i++) {
         pNodeLong = pNodeLong -> m_pNext;
     }
